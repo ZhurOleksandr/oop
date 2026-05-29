@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediPredictor 2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f4f8;--surface:#fff;--surface2:#f8fafc;
+  --sidebar:#0f172a;--sidebar-text:#94a3b8;
+  --primary:#2563eb;--primary-light:#eff6ff;--primary-dark:#1d4ed8;
+  --accent:#06b6d4;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;--border:#e2e8f0;
+  --radius:12px;--radius-sm:8px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.05);
+  --shadow-lg:0 8px 32px rgba(0,0,0,.14);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
+
+/* ── MODE BANNER ── */
+#mode-banner{display:flex;align-items:center;justify-content:center;gap:8px;padding:7px 16px;font-size:12px;font-weight:600;letter-spacing:.3px}
+#mode-banner.online{background:#dcfce7;color:#16a34a;border-bottom:1px solid #bbf7d0}
+#mode-banner.offline{background:#fef9c3;color:#854d0e;border-bottom:1px solid #fef08a}
+
+/* ── LOGIN ── */
+#login-screen{min-height:calc(100vh - 33px);display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f172a,#1e3a5f 60%,#0f4c81);position:relative;overflow:hidden}
+#login-screen::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.18),transparent 70%);top:-180px;right:-180px}
+.login-card{background:#fff;border-radius:20px;padding:44px 38px;width:390px;box-shadow:0 24px 64px rgba(0,0,0,.3);position:relative;z-index:1}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.login-logo-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.login-logo-name{font-size:19px;font-weight:700}
+.login-logo-ver{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.login-title{font-size:22px;font-weight:700;margin-bottom:6px}
+.login-sub{color:var(--text2);margin-bottom:24px;font-size:13px}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.form-input{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:14px;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;background:#fff}
+.form-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.form-input::placeholder{color:var(--text3)}
+select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+textarea.form-input{resize:vertical;min-height:72px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 16px;border:none;border-radius:var(--radius-sm);font-family:inherit;font-size:13.5px;font-weight:500;cursor:pointer;transition:all .18s;white-space:nowrap;text-decoration:none}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,.35)}
+.btn-primary:active{transform:translateY(0)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn-ghost{background:transparent;color:var(--text2)}
+.btn-ghost:hover{background:var(--bg);color:var(--text)}
+.btn-outline{background:transparent;color:var(--primary);border:1.5px solid var(--primary)}
+.btn-outline:hover{background:var(--primary-light)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#dc2626}
+.btn-success{background:var(--success);color:#fff}
+.btn-warning{background:var(--warning);color:#fff}
+.btn-sm{padding:6px 12px;font-size:12.5px}
+.btn-xs{padding:4px 9px;font-size:12px}
+.btn-full{width:100%;padding:13px;font-size:15px;font-weight:600}
+.hint-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;margin-top:16px;font-size:12px;color:var(--text2);line-height:1.8}
+.error-msg{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;border-radius:var(--radius-sm);padding:9px 13px;font-size:13px;margin-bottom:12px;display:none}
+.error-msg.show{display:block}
+
+/* ── APP ── */
+#app{display:none;min-height:calc(100vh - 33px)}
+#app.show{display:flex}
+.sidebar{width:232px;min-height:calc(100vh - 33px);background:var(--sidebar);display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:33px;height:calc(100vh - 33px);overflow-y:auto}
+.sidebar-header{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sb-logo{display:flex;align-items:center;gap:10px}
+.sb-logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.sb-logo-name{font-size:15px;font-weight:700;color:#fff}
+.sb-logo-ver{font-size:10px;color:var(--sidebar-text);text-transform:uppercase;letter-spacing:.5px}
+.sidebar-nav{padding:12px 10px;flex:1}
+.nav-section{margin-bottom:20px}
+.nav-section-label{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(148,163,184,.45);padding:0 8px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;transition:all .15s;color:var(--sidebar-text);font-size:13px;margin-bottom:2px}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-item.active{background:rgba(37,99,235,.3);color:#fff;font-weight:600}
+.nav-icon{font-size:15px;width:18px;text-align:center}
+.sidebar-user{padding:14px 18px;border-top:1px solid rgba(255,255,255,.06)}
+.user-info{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.user-name{font-size:13px;font-weight:600;color:#fff}
+.user-role{font-size:11px;color:var(--sidebar-text)}
+.btn-logout{width:100%;padding:7px 12px;border:none;background:rgba(255,255,255,.06);color:var(--sidebar-text);border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;transition:all .15s;text-align:left;display:flex;align-items:center;gap:8px}
+.btn-logout:hover{background:rgba(239,68,68,.2);color:#fca5a5}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 22px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.topbar-title{font-size:17px;font-weight:700}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.search-box{display:flex;align-items:center;gap:7px;padding:6px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;width:210px}
+.search-box input{border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;color:var(--text);flex:1}
+.search-box input::placeholder{color:var(--text3)}
+.page{display:none;padding:22px;flex:1;overflow-y:auto}
+.page.active{display:block}
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow)}
+.card-header{padding:16px 20px 13px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card-title{font-size:15px;font-weight:600}
+.card-body{padding:20px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;box-shadow:var(--shadow)}
+.stat-icon{font-size:24px;margin-bottom:9px}
+.stat-value{font-size:28px;font-weight:700;line-height:1;margin-bottom:3px}
+.stat-label{font-size:12px;color:var(--text2)}
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{text-align:left;padding:10px 14px;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);background:var(--surface2)}
+.data-table td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--surface2)}
+.data-table tbody tr{cursor:pointer;transition:background .1s}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:500}
+.badge-high{background:#fef2f2;color:#dc2626}
+.badge-medium{background:#fffbeb;color:#d97706}
+.badge-low{background:#f0fdf4;color:#16a34a}
+.badge-blue{background:#eff6ff;color:var(--primary)}
+.badge-gray{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.badge-green{background:#f0fdf4;color:#16a34a}
+.risk-bar{height:5px;border-radius:3px;background:var(--bg);margin-top:4px;overflow:hidden}
+.risk-fill{height:100%;border-radius:3px;transition:width .6s ease}
+.risk-fill.high{background:linear-gradient(90deg,var(--danger),#f97316)}
+.risk-fill.medium{background:linear-gradient(90deg,var(--warning),#fcd34d)}
+.risk-fill.low{background:linear-gradient(90deg,var(--success),#34d399)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.analysis-layout{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.form-grid .full{grid-column:1/-1}
+.form-section{margin-bottom:20px}
+.form-section-title{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+.results-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);position:sticky;top:20px}
+.results-empty{padding:38px 20px;text-align:center;color:var(--text3)}
+.results-empty-icon{font-size:34px;margin-bottom:9px}
+.prediction-item{padding:13px 18px;border-bottom:1px solid var(--border)}
+.prediction-item:last-child{border-bottom:none}
+.pred-name{font-size:14px;font-weight:500;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.pred-prob{font-family:'DM Mono',monospace;font-size:14px;font-weight:700}
+.prob-high{color:var(--danger)}.prob-medium{color:var(--warning)}.prob-low{color:var(--success)}
+.pred-factors{margin-top:5px;display:flex;flex-wrap:wrap;gap:3px}
+.factor-chip{font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 6px;color:var(--text2)}
+.reco-box{background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1px solid #bfdbfe;border-radius:var(--radius-sm);padding:13px 16px;margin:13px 18px;font-size:13px;color:var(--text2);line-height:1.75}
+.reco-box strong{color:var(--primary);display:block;margin-bottom:4px;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.patient-header{display:flex;align-items:center;gap:16px;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px}
+.patient-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;flex-shrink:0}
+.patient-name{font-size:18px;font-weight:700;margin-bottom:4px}
+.patient-meta{font-size:13px;color:var(--text2);display:flex;gap:12px;flex-wrap:wrap}
+.analysis-list-item{display:flex;align-items:center;justify-content:space-between;padding:13px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.analysis-list-item:last-child{border-bottom:none}
+.analysis-list-item:hover{background:var(--surface2)}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text3);margin-bottom:16px}
+.breadcrumb a{color:var(--primary);cursor:pointer}
+.breadcrumb a:hover{text-decoration:underline}
+.loader{display:flex;align-items:center;justify-content:center;padding:48px;flex-direction:column;gap:12px;color:var(--text3)}
+.spinner{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:48px 18px;color:var(--text3)}
+.empty-icon{font-size:38px;margin-bottom:12px}
+.empty-title{font-size:15px;font-weight:600;color:var(--text2);margin-bottom:6px}
+.empty-text{font-size:13px;margin-bottom:14px}
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.show{opacity:1;pointer-events:all}
+.modal{background:#fff;border-radius:16px;padding:0;width:540px;max-width:calc(100vw - 32px);max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);transform:translateY(10px);transition:transform .2s}
+.modal-overlay.show .modal{transform:translateY(0)}
+.modal-lg{width:740px}
+.modal-header{padding:22px 26px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:17px;font-weight:700}
+.modal-body{padding:22px 26px}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;padding:14px 26px 22px;border-top:1px solid var(--border);margin-top:4px}
+.modal-close{background:none;border:none;cursor:pointer;font-size:17px;color:var(--text3);padding:4px 8px;border-radius:6px}
+.modal-close:hover{background:var(--bg);color:var(--text)}
+#toast{position:fixed;bottom:22px;right:22px;background:var(--text);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.2);transform:translateY(80px);opacity:0;transition:all .3s;z-index:9999;max-width:320px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.success{background:var(--success)}
+#toast.error{background:var(--danger)}
+#toast.warning{background:var(--warning);color:#fff}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.dot-high{background:var(--danger)}.dot-medium{background:var(--warning)}.dot-low{background:var(--success)}.dot-active{background:var(--success)}.dot-inactive{background:var(--text3)}
+
+/* ── ALGO CARDS ── */
+.algo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.algo-card{border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;background:var(--surface);box-shadow:var(--shadow);transition:box-shadow .15s}
+.algo-card:hover{box-shadow:var(--shadow-lg)}
+.algo-card-name{font-size:14px;font-weight:600;margin-bottom:3px}
+.algo-card-disease{font-size:12px;color:var(--text2);margin-bottom:8px}
+.algo-card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.algo-card-actions{display:flex;gap:5px;flex-shrink:0}
+.algo-rules-preview{background:var(--surface2);border-radius:8px;padding:9px 11px;font-size:12px;color:var(--text2);line-height:1.8}
+.badge-system{background:#f0f0ff;color:#6366f1;border:1px solid #c7d2fe}
+
+/* ── RULE BUILDER ── */
+.algo-section{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px}
+.algo-section-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.rule-row{display:grid;grid-template-columns:1fr 1fr 1.2fr 60px 1fr auto;gap:7px;align-items:center;background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:5px}
+.rule-input{padding:6px 9px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:12.5px;width:100%;outline:none;background:#fff}
+.rule-input:focus{border-color:var(--primary)}
+.btn-rule-add{display:flex;align-items:center;gap:6px;padding:8px 13px;background:#fff;border:1.5px dashed var(--border);border-radius:8px;color:var(--text3);cursor:pointer;font-family:inherit;font-size:13px;width:100%;justify-content:center;transition:all .15s;margin-top:4px}
+.btn-rule-add:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+</style>
+</head>
+<body>
+
+<!-- MODE BANNER -->
+<div id="mode-banner" class="offline">
+  <span id="mode-dot">🟡</span>
+  <span id="mode-text">Офлайн-режим — дані зберігаються локально</span>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">🏥</div>
+      <div>
+        <div class="login-logo-name">MediPredictor</div>
+        <div class="login-logo-ver">v2.0 · ООП Архітектура</div>
+      </div>
+    </div>
+    <div class="login-title">Вхід до системи</div>
+    <div class="login-sub">Введіть ваші облікові дані</div>
+    <div id="login-error" class="error-msg"></div>
+    <div class="form-group">
+      <label class="form-label">Логін</label>
+      <input type="text" id="inp-login" class="form-input" placeholder="doctor1" value="doctor1" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Пароль</label>
+      <input type="password" id="inp-pass" class="form-input" placeholder="••••••••" value="password123" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="login()">🔐 Увійти</button>
+    <div class="hint-box">
+      🩺 <b>doctor1</b> / password123 — Лікар<br>
+      ⚙️ <b>admin</b> / admin123 — Адміністратор<br>
+      📊 <b>analyst</b> / analyst123 — Аналітик
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sb-logo">
+        <div class="sb-logo-icon">🏥</div>
+        <div>
+          <div class="sb-logo-name">MediPredictor</div>
+          <div class="sb-logo-ver">v2.0</div>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-label">Головне</div>
+        <div class="nav-item active" onclick="nav('dashboard')" data-page="dashboard"><span class="nav-icon">📊</span>Дашборд</div>
+        <div class="nav-item" onclick="nav('analysis')" data-page="analysis"><span class="nav-icon">🔬</span>Новий аналіз</div>
+        <div class="nav-item" onclick="nav('patients')" data-page="patients"><span class="nav-icon">👥</span>Пацієнти</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Алгоритми</div>
+        <div class="nav-item" onclick="nav('algorithms')" data-page="algorithms"><span class="nav-icon">🧠</span>Алгоритми прогнозу</div>
+      </div>
+      <div class="nav-section" id="admin-nav" style="display:none">
+        <div class="nav-section-label">Адміністрування</div>
+        <div class="nav-item" onclick="nav('users')" data-page="users"><span class="nav-icon">👤</span>Користувачі</div>
+        <div class="nav-item" onclick="nav('reports')" data-page="reports"><span class="nav-icon">📈</span>Звіти</div>
+      </div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-info">
+        <div class="user-avatar" id="sb-avatar">?</div>
+        <div>
+          <div class="user-name" id="sb-name">—</div>
+          <div class="user-role" id="sb-role">—</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">← Вийти</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">Дашборд</div>
+      <div class="topbar-actions">
+        <div class="search-box" id="search-box" style="display:none">
+          <span>🔍</span>
+          <input type="text" id="search-inp" placeholder="Пошук пацієнта..." oninput="searchPatients(this.value)">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="nav('analysis')">+ Новий аналіз</button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value" id="st-patients">—</div><div class="stat-label">Пацієнтів</div></div>
+        <div class="stat-card"><div class="stat-icon">🔬</div><div class="stat-value" id="st-analyses">—</div><div class="stat-label">Аналізів</div></div>
+        <div class="stat-card"><div class="stat-icon">🧠</div><div class="stat-value" id="st-algos">—</div><div class="stat-label">Алгоритмів</div></div>
+        <div class="stat-card"><div class="stat-icon">⚠️</div><div class="stat-value" id="st-high">—</div><div class="stat-label">Висок. ризик</div></div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Останні аналізи</div><button class="btn btn-ghost btn-sm" onclick="nav('patients')">Всі →</button></div>
+          <div id="recent-list"><div class="loader"><div class="spinner"></div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Топ захворювань</div></div>
+          <div class="card-body" id="top-diseases"><div class="loader"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYSIS -->
+    <div class="page" id="page-analysis">
+      <div class="analysis-layout">
+        <div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">🔬 Нове обстеження</div></div>
+            <div class="card-body">
+              <div class="form-section">
+                <div class="form-section-title">👤 Пацієнт</div>
+                <div class="form-grid">
+                  <div class="full"><label class="form-label">Вибрати існуючого</label>
+                    <select id="f-patient-sel" class="form-input" onchange="onPatSel(this.value)"><option value="">— Новий пацієнт —</option></select>
+                  </div>
+                </div>
+                <div id="new-pat-block">
+                  <div style="height:10px"></div>
+                  <div class="form-grid">
+                    <div class="full"><label class="form-label">ПІБ *</label><input type="text" id="f-name" class="form-input" placeholder="Прізвище Ім'я По батькові"></div>
+                    <div><label class="form-label">Вік *</label><input type="number" id="f-age" class="form-input" placeholder="0" min="0" max="120"></div>
+                    <div><label class="form-label">Стать</label><select id="f-gender" class="form-input"><option value="male">Чоловіча</option><option value="female">Жіноча</option></select></div>
+                    <div><label class="form-label">Телефон</label><input type="tel" id="f-phone" class="form-input" placeholder="+380..."></div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-section">
+                <div class="form-section-title">📋 Анамнез та скарги</div>
+                <textarea id="f-anamnesis" class="form-input" placeholder="Опишіть симптоми, скарги пацієнта..."></textarea>
+              </div>
+              <div class="form-section">
+                <div class="form-section-title">🩸 Показники аналізів</div>
+                <div class="form-grid">
+                  <div><label class="form-label">Глюкоза (ммоль/л)</label><input type="number" id="f-glucose" class="form-input" placeholder="5.5" step="0.1"></div>
+                  <div><label class="form-label">Холестерин (ммоль/л)</label><input type="number" id="f-chol" class="form-input" placeholder="4.5" step="0.1"></div>
+                  <div><label class="form-label">АТ Систолічний (мм рт.ст.)</label><input type="number" id="f-sys" class="form-input" placeholder="120"></div>
+                  <div><label class="form-label">АТ Діастолічний (мм рт.ст.)</label><input type="number" id="f-dia" class="form-input" placeholder="80"></div>
+                  <div><label class="form-label">ЧСС (уд/хв)</label><input type="number" id="f-hr" class="form-input" placeholder="72"></div>
+                  <div><label class="form-label">Температура (°C)</label><input type="number" id="f-temp" class="form-input" placeholder="36.6" step="0.1"></div>
+                  <div><label class="form-label">ІМТ (кг/м²)</label><input type="number" id="f-bmi" class="form-input" placeholder="22.5" step="0.1"></div>
+                </div>
+              </div>
+              <button class="btn btn-primary btn-full" id="run-btn" onclick="runAnalysis()">🚀 Запустити прогноз</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="results-panel">
+            <div class="card-header"><div class="card-title">📈 Результати</div><span id="res-status" style="display:none" class="badge badge-green">✓ Завершено</span></div>
+            <div id="results-area">
+              <div class="results-empty"><div class="results-empty-icon">🔬</div><div style="font-size:13px;color:var(--text3)">Введіть дані та натисніть<br>«Запустити прогноз»</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PATIENTS -->
+    <div class="page" id="page-patients">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">👥 Журнал пацієнтів <span id="patients-count" class="badge badge-blue" style="margin-left:8px">0</span></div>
+          <button class="btn btn-primary btn-sm" onclick="showPatModal()">+ Додати пацієнта</button>
+        </div>
+        <div id="patients-table"><div class="loader"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- PATIENT DETAIL -->
+    <div class="page" id="page-patient-detail">
+      <div class="breadcrumb"><a onclick="nav('patients')">Пацієнти</a><span>›</span><span id="bc-name">—</span></div>
+      <div id="patient-header-block"><div class="loader"><div class="spinner"></div></div></div>
+      <div class="two-col">
+        <div class="card">
+          <div class="card-header"><div class="card-title">📋 Аналізи</div><button class="btn btn-primary btn-sm" onclick="newAnalysisForPatient()">+ Новий аналіз</button></div>
+          <div id="patient-analyses-list"><div class="loader"><div class="spinner"></div></div></div>
+        </div>
+        <div class="card" id="sel-analysis-panel" style="display:none">
+          <div class="card-header"><div class="card-title" id="sel-analysis-title">Аналіз</div></div>
+          <div id="sel-analysis-body"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALGORITHMS -->
+    <div class="page" id="page-algorithms">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <h2 style="font-size:17px;font-weight:700">🧠 Алгоритми прогнозування</h2>
+          <p style="font-size:12px;color:var(--text2);margin-top:2px">Rule-based ООП-engine: BasePredictor → RuleBasedPredictor</p>
+        </div>
+        <button class="btn btn-primary btn-sm" id="btn-create-algo" onclick="showAlgoModal()" style="display:none">+ Створити алгоритм</button>
+      </div>
+      <div id="algo-grid"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- USERS -->
+    <div class="page" id="page-users">
+      <div class="card">
+        <div class="card-header"><div class="card-title">👤 Користувачі</div><button class="btn btn-primary btn-sm" onclick="showUserModal()">+ Додати</button></div>
+        <div id="users-table"><div class="loader"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div class="page" id="page-reports">
+      <div class="card">
+        <div class="card-header"><div class="card-title">📈 Звіти</div></div>
+        <div class="card-body" id="reports-body"><div class="loader"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- PATIENT MODAL -->
+<div class="modal-overlay" id="pat-modal" onclick="closeModal('pat-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><div class="modal-title">➕ Новий пацієнт</div><button class="modal-close" onclick="closeModal('pat-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="full"><label class="form-label">ПІБ *</label><input type="text" id="mp-name" class="form-input" placeholder="Прізвище Ім'я По батькові"></div>
+        <div><label class="form-label">Вік *</label><input type="number" id="mp-age" class="form-input" min="0" max="120" placeholder="0"></div>
+        <div><label class="form-label">Стать</label><select id="mp-gender" class="form-input"><option value="male">Чоловіча</option><option value="female">Жіноча</option></select></div>
+        <div><label class="form-label">Телефон</label><input type="tel" id="mp-phone" class="form-input" placeholder="+380..."></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('pat-modal')">Скасувати</button>
+      <button class="btn btn-primary" onclick="savePatient()">Зберегти</button>
+    </div>
+  </div>
+</div>
+
+<!-- USER MODAL -->
+<div class="modal-overlay" id="user-modal" onclick="closeModal('user-modal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><div class="modal-title">➕ Новий користувач</div><button class="modal-close" onclick="closeModal('user-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div><label class="form-label">Логін *</label><input type="text" id="mu-login" class="form-input" placeholder="login123"></div>
+        <div><label class="form-label">Пароль *</label><input type="password" id="mu-pass" class="form-input" placeholder="мін. 6 символів"></div>
+        <div class="full"><label class="form-label">Повне ім'я *</label><input type="text" id="mu-name" class="form-input"></div>
+        <div><label class="form-label">Роль</label><select id="mu-role" class="form-input"><option value="doctor">Лікар</option><option value="admin">Адміністратор</option><option value="analyst">Аналітик</option></select></div>
+        <div><label class="form-label">Спеціальність</label><input type="text" id="mu-spec" class="form-input" placeholder="Терапевт..."></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('user-modal')">Скасувати</button>
+      <button class="btn btn-primary" onclick="saveUser()">Зберегти</button>
+    </div>
+  </div>
+</div>
+
+<!-- ALGO MODAL -->
+<div class="modal-overlay" id="algo-modal">
+  <div class="modal modal-lg" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="am-title">🧠 Новий алгоритм прогнозування</div>
+      <button class="modal-close" onclick="closeModal('algo-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="algo-section">
+        <div class="algo-section-title">Основна інформація</div>
+        <div class="form-grid">
+          <div class="full"><label class="form-label">Назва *</label><input type="text" id="am-name" class="form-input" placeholder="Алгоритм: Назва захворювання"></div>
+          <div class="full"><label class="form-label">Захворювання *</label><input type="text" id="am-disease" class="form-input" placeholder="Наприклад: Цукровий діабет 2 типу"></div>
+          <div class="full"><label class="form-label">Опис</label><textarea id="am-desc" class="form-input" placeholder="Опис логіки алгоритму..." style="min-height:56px"></textarea></div>
+          <div><label class="form-label">Версія</label><input type="text" id="am-ver" class="form-input" value="1.0"></div>
+          <div><label class="form-label">Макс. балів</label><input type="number" id="am-max" class="form-input" value="100" min="1"></div>
+        </div>
+      </div>
+      <div class="algo-section">
+        <div class="algo-section-title">Порогові значення ризику</div>
+        <div class="form-grid">
+          <div><label class="form-label">🟢 Низький ризик (балів ≥)</label><input type="number" id="am-tlow" class="form-input" value="20"></div>
+          <div><label class="form-label">🟡 Середній ризик (балів ≥)</label><input type="number" id="am-tmed" class="form-input" value="40"></div>
+          <div><label class="form-label">🔴 Високий ризик (балів ≥)</label><input type="number" id="am-thigh" class="form-input" value="65"></div>
+          <div style="font-size:12px;color:var(--text2);padding-top:8px">
+            Ймовірність (%) = мін(99, бали / макс × 100)
+          </div>
+        </div>
+      </div>
+      <div class="algo-section">
+        <div class="algo-section-title">Правила алгоритму</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Якщо умова виконується — до загального рахунку додаються бали</div>
+        <div id="rules-container"></div>
+        <button class="btn-rule-add" onclick="addRule()">+ Додати правило</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('algo-modal')">Скасувати</button>
+      <button class="btn btn-primary" id="am-save-btn" onclick="saveAlgorithm()">💾 Зберегти алгоритм</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// CONFIG & STATE
+// ════════════════════════════════════════════════════════
+// API URL: спочатку пробуємо localhost:8000, якщо недоступний — офлайн режим
+const API_URL = (()=>{
+  // Дозволяємо перевизначити через ?api= параметр: http://localhost:3000?api=http://myserver:8000
+  const params = new URLSearchParams(window.location.search);
+  return params.get('api') || 'http://localhost:8000';
+})();
+let token = null, currentUser = null;
+let ONLINE = false;  // auto-detected
+let allPatients = [], currentPatientId = null, editingAlgoId = null;
+let ruleCount = 0;
+
+// ════════════════════════════════════════════════════════
+// OFFLINE STORAGE (localStorage)
+// ════════════════════════════════════════════════════════
+const LS = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)) } catch { return null } },
+  set: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
+};
+
+function loadLS() {
+  const def_patients = [
+    { id:'p1', full_name:'Іванов Іван Іванович', age:52, gender:'male', phone:'+380501234567', doctor_id:'doctor1', created_at:'2024-05-10', total_analyses:1, last_analysis_date:'2024-05-10', top_disease:'Артеріальна гіпертензія', top_risk:'high', top_probability:85, doctor_name:'Петренко О.М.' },
+    { id:'p2', full_name:'Петренко Олена Сергіївна', age:45, gender:'female', phone:'+380671234568', doctor_id:'doctor1', created_at:'2024-05-12', total_analyses:1, last_analysis_date:'2024-05-12', top_disease:'Цукровий діабет 2 типу', top_risk:'high', top_probability:92, doctor_name:'Петренко О.М.' },
+  ];
+  const def_analyses = [
+    { id:'a1', patient_id:'p1', doctor_id:'doctor1', analysis_date:'2024-05-10', anamnesis:'Скарги на задишку, набряки ніг, підвищений тиск', glucose:5.8, cholesterol:6.2, systolic_bp:160, diastolic_bp:100, heart_rate:88, temperature:null, bmi:null, predictions:[{disease:'Артеріальна гіпертензія',probability:85,risk:'high',score:85,max_score:105,factors:['Систолічний АТ > 140','Діастолічний АТ > 90','Вік > 50']},{disease:'Серцево-судинна недостатність',probability:60,risk:'medium',score:66,max_score:110,factors:['Холестерин 5.5–6.5','Вік > 55']}], recommendation:'Консультація кардіолога. Добовий моніторинг АТ. Дієта з обмеженням солі. Повторний огляд через 3 місяці.' },
+    { id:'a2', patient_id:'p2', doctor_id:'doctor1', analysis_date:'2024-05-12', anamnesis:'Підвищена спрага, часте сечовипускання, втома', glucose:8.9, cholesterol:5.1, systolic_bp:130, diastolic_bp:85, heart_rate:78, temperature:null, bmi:null, predictions:[{disease:'Цукровий діабет 2 типу',probability:92,risk:'high',score:105,max_score:115,factors:['Глюкоза > 7.0','Вік > 45','Симптоми']},{disease:'Метаболічний синдром',probability:55,risk:'medium',score:66,max_score:120,factors:['Глюкоза > 6.1','АТ > 130']}], recommendation:'Направити до ендокринолога. Контроль глікемії. Дієта з обмеженням вуглеводів. Повторний огляд через 1 місяць.' },
+  ];
+  const def_algos = [
+    { id:'al1', name:'Алгоритм: Цукровий діабет 2 типу', disease:'Цукровий діабет 2 типу', description:'Rule-based ООП-алгоритм', version:'1.0', is_active:true, is_system:true, threshold_low:20, threshold_medium:40, threshold_high:65, max_score:115, creator_name:'Адміністратор', rules:[{id:'r1',field:'glucose',operator:'gt',value:7.0,score:50,description:'Глюкоза > 7.0'},{id:'r2',field:'age',operator:'gt',value:45,score:15,description:'Вік > 45'},{id:'r3',field:'anamnesis',operator:'contains',value_text:'спраг,сечовипуск,втом',score:20,description:'Симптоми діабету'}] },
+    { id:'al2', name:'Алгоритм: Артеріальна гіпертензія', disease:'Артеріальна гіпертензія', description:'Оцінка ризику за АТ', version:'1.0', is_active:true, is_system:true, threshold_low:15, threshold_medium:35, threshold_high:60, max_score:105, creator_name:'Адміністратор', rules:[{id:'r4',field:'systolicBP',operator:'gt',value:140,score:50,description:'АТ сист. > 140'},{id:'r5',field:'diastolicBP',operator:'gt',value:90,score:30,description:'АТ діаст. > 90'},{id:'r6',field:'age',operator:'gt',value:50,score:10,description:'Вік > 50'}] },
+    { id:'al3', name:'Алгоритм: Серцево-судинна недостатність', disease:'Серцево-судинна недостатність', description:'Комплексна оцінка ССН', version:'1.0', is_active:true, is_system:true, threshold_low:20, threshold_medium:40, threshold_high:60, max_score:110, creator_name:'Адміністратор', rules:[{id:'r7',field:'cholesterol',operator:'gt',value:6.5,score:40,description:'Холестерин > 6.5'},{id:'r8',field:'systolicBP',operator:'gt',value:150,score:25,description:'АТ > 150'},{id:'r9',field:'age',operator:'gt',value:55,score:15,description:'Вік > 55'}] },
+    { id:'al4', name:'Алгоритм: Метаболічний синдром', disease:'Метаболічний синдром', description:'Метаболічні порушення', version:'1.0', is_active:true, is_system:true, threshold_low:20, threshold_medium:45, threshold_high:70, max_score:120, creator_name:'Адміністратор', rules:[{id:'r10',field:'glucose',operator:'gt',value:6.1,score:30,description:'Глюкоза > 6.1'},{id:'r11',field:'systolicBP',operator:'gt',value:130,score:25,description:'АТ > 130'},{id:'r12',field:'bmi',operator:'gt',value:30,score:25,description:'ІМТ > 30'}] },
+    { id:'al5', name:'Алгоритм: Атеросклероз', disease:'Атеросклероз', description:'Оцінка за ліпідами та АТ', version:'1.0', is_active:true, is_system:true, threshold_low:20, threshold_medium:35, threshold_high:55, max_score:95, creator_name:'Адміністратор', rules:[{id:'r13',field:'cholesterol',operator:'gt',value:6.0,score:45,description:'Холестерин > 6.0'},{id:'r14',field:'age',operator:'gt',value:50,score:20,description:'Вік > 50'}] },
+  ];
+  const def_users = [
+    { id:'u1', login:'doctor1', full_name:'Петренко Олександр Миколайович', role:'doctor', specialty:'Терапевт', is_active:true },
+    { id:'u2', login:'admin', full_name:'Коваль Марія Іванівна', role:'admin', specialty:'Адміністратор', is_active:true },
+    { id:'u3', login:'analyst', full_name:'Сидоренко Іван Петрович', role:'analyst', specialty:'Аналітик', is_active:true },
+  ];
+  if (!LS.get('mp_patients')) LS.set('mp_patients', def_patients);
+  if (!LS.get('mp_analyses')) LS.set('mp_analyses', def_analyses);
+  if (!LS.get('mp_algos'))    LS.set('mp_algos', def_algos);
+  if (!LS.get('mp_users'))    LS.set('mp_users', def_users);
+}
+
+// ════════════════════════════════════════════════════════
+// OFFLINE PREDICTION ENGINE (mirrors Python ООП logic)
+// ════════════════════════════════════════════════════════
+const OPS = {
+  gt:          (v,r)=>parseFloat(v)>parseFloat(r),
+  gte:         (v,r)=>parseFloat(v)>=parseFloat(r),
+  lt:          (v,r)=>parseFloat(v)<parseFloat(r),
+  lte:         (v,r)=>parseFloat(v)<=parseFloat(r),
+  eq:          (v,r)=>String(v).toLowerCase()===String(r).toLowerCase(),
+  between:     (v,r,r2)=>parseFloat(r)<=parseFloat(v)&&parseFloat(v)<=parseFloat(r2),
+  contains:    (v,kw)=>(kw||'').split(',').some(k=>String(v).toLowerCase().includes(k.trim().toLowerCase())),
+  not_contains:(v,kw)=>!(kw||'').split(',').some(k=>String(v).toLowerCase().includes(k.trim().toLowerCase())),
+};
+
+function getField(patient, field) {
+  const m = { glucose:'glucose', cholesterol:'cholesterol', systolicBP:'systolicBP', diastolicBP:'diastolicBP', heartRate:'heart_rate', temperature:'temperature', bmi:'bmi', age:'age', gender:'gender', anamnesis:'anamnesis' };
+  return patient[m[field] ?? field];
+}
+
+function evalRule(rule, patient) {
+  const v = getField(patient, rule.field);
+  if (v == null) return false;
+  const op = OPS[rule.operator];
+  if (!op) return false;
+  return op(v, rule.value ?? rule.value_text, rule.value2);
+}
+
+function runPrediction(algos, patient) {
+  const results = [];
+  for (const algo of algos) {
+    if (!algo.is_active) continue;
+    let score = 0; const factors = [];
+    for (const rule of algo.rules) {
+      if (evalRule(rule, patient)) { score += rule.score; if (rule.description) factors.push(rule.description); }
+    }
+    const risk = score >= algo.threshold_high ? 'high' : score >= algo.threshold_medium ? 'medium' : score >= algo.threshold_low ? 'low' : 'none';
+    if (risk === 'none') continue;
+    results.push({ disease:algo.disease, probability:Math.min(99,Math.round(score/algo.max_score*100)), risk, score, max_score:algo.max_score, algorithm_id:algo.id, factors });
+  }
+  results.sort((a,b)=>b.probability-a.probability);
+  return results.slice(0,6);
+}
+
+function buildReco(predictions) {
+  if (!predictions.length) return 'Показники в межах норми. Рекомендовано профілактичний огляд через 12 місяців.';
+  const recs=[], seen=new Set();
+  const add=(r)=>{ if(!seen.has(r)){seen.add(r);recs.push(r);} };
+  for (const p of predictions) {
+    const d=p.disease.toLowerCase();
+    if(d.includes('діабет')){add('Направити до ендокринолога.');add('Контроль глікемії натще та постпрандіально.');add('Дієта з обмеженням простих вуглеводів.');}
+    if(d.includes('гіпертен')){add('Консультація кардіолога.');add('Добовий моніторинг артеріального тиску.');add('Дієта з обмеженням солі (до 5 г/добу).');}
+    if(d.includes('серцево')){add('Ехокардіографія.');add('ЕКГ у спокої та навантаженні.');add('Обмеження фізичних навантажень.');}
+    if(d.includes('атеросклер')){add('Розгорнута ліпідограма.');add('Розглянути статинотерапію.');}
+    if(d.includes('метаболічний')){add('Корекція маси тіла.');add('Регулярна фізична активність (≥150 хв/тиждень).');}
+  }
+  add('Повторний огляд через 3 місяці.');
+  return recs.join(' ');
+}
+
+// ════════════════════════════════════════════════════════
+// ONLINE/OFFLINE AUTO-DETECT
+// ════════════════════════════════════════════════════════
+async function detectMode() {
+  try {
+    const r = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(3000) });
+    ONLINE = r.ok;
+  } catch { ONLINE = false; }
+  const b = document.getElementById('mode-banner');
+  const t = document.getElementById('mode-text');
+  const d = document.getElementById('mode-dot');
+  if (ONLINE) {
+    b.className = 'online';
+    d.textContent = '🟢';
+    t.textContent = 'Онлайн-режим — підключено до сервера http://localhost:8000';
+  } else {
+    b.className = 'offline';
+    d.textContent = '🟡';
+    t.textContent = `Офлайн-режим — сервер ${API_URL} недоступний. Дані зберігаються локально`;
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// HTTP HELPER
+// ════════════════════════════════════════════════════════
+async function api(method, path, body=null) {
+  const opts = { method, headers:{ 'Content-Type':'application/json', ...(token?{Authorization:`Bearer ${token}`}:{}) } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API_URL + path, opts);
+  if (!res.ok) { const e=await res.json().catch(()=>({detail:'Помилка сервера'})); throw new Error(e.detail||`HTTP ${res.status}`); }
+  if (res.status===204) return null;
+  return res.json();
+}
+
+// ════════════════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════════════════
+const MOCK_USERS = [
+  { login:'doctor1', password:'password123', name:'Петренко Олександр Миколайович', role:'doctor', specialty:'Терапевт' },
+  { login:'admin',   password:'admin123',    name:'Коваль Марія Іванівна',          role:'admin',  specialty:'Адміністратор' },
+  { login:'analyst', password:'analyst123',  name:'Сидоренко Іван Петрович',        role:'analyst', specialty:'Аналітик' },
+  { login:'doctor2', password:'password123', name:'Мельник Олена Василівна',        role:'doctor', specialty:'Кардіолог' },
+];
+
+async function login() {
+  const loginVal = document.getElementById('inp-login').value.trim();
+  const password = document.getElementById('inp-pass').value;
+  const errEl = document.getElementById('login-error');
+  errEl.classList.remove('show');
+
+  // Якщо статус невідомий — перевіряємо ще раз
+  if (!ONLINE) await detectMode();
+
+  try {
+    if (ONLINE) {
+      let data;
+      try {
+        data = await api('POST', '/api/auth/login', { login: loginVal, password });
+      } catch(e) {
+        // Якщо сервер раптом впав — перемикаємось в офлайн
+        if (e.message.includes('fetch') || e.message.includes('network') || e.message.includes('Failed')) {
+          ONLINE = false;
+          await detectMode();
+          const u = MOCK_USERS.find(u=>u.login===loginVal && u.password===password);
+          if (!u) throw new Error('Невірний логін або пароль');
+          currentUser = { id:u.login, login:u.login, full_name:u.name, role:u.role, specialty:u.specialty };
+          token = 'offline';
+          showToast('⚠️ Підключено в офлайн-режимі', 'warning');
+        } else {
+          throw e;
+        }
+        data = null;
+      }
+      if (data) { token = data.access_token; currentUser = data.user; }
+    } else {
+      const u = MOCK_USERS.find(u=>u.login===loginVal && u.password===password);
+      if (!u) throw new Error('Невірний логін або пароль');
+      currentUser = { id:u.login, login:u.login, full_name:u.name, role:u.role, specialty:u.specialty };
+      token = 'offline';
+    }
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').classList.add('show');
+    document.getElementById('sb-name').textContent = currentUser.full_name;
+    document.getElementById('sb-role').textContent = roleLabel(currentUser.role);
+    document.getElementById('sb-avatar').textContent = currentUser.full_name.charAt(0);
+    if (currentUser.role==='admin') document.getElementById('admin-nav').style.display='block';
+    nav('dashboard'); loadDashboard();
+  } catch(e) { errEl.textContent=e.message; errEl.classList.add('show'); }
+}
+
+function logout() {
+  token=null; currentUser=null;
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('login-screen').style.display='flex';
+}
+
+// ════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════
+function nav(page) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page)?.classList.add('active');
+  document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
+  const titles={dashboard:'Дашборд',analysis:'Новий аналіз',patients:'Пацієнти','patient-detail':'Карта пацієнта',algorithms:'Алгоритми',users:'Користувачі',reports:'Звіти'};
+  document.getElementById('page-title').textContent=titles[page]||page;
+  document.getElementById('search-box').style.display=page==='patients'?'flex':'none';
+  if(page==='patients') loadPatients();
+  if(page==='algorithms') loadAlgorithms();
+  if(page==='users') loadUsers();
+  if(page==='reports') loadReports();
+  if(page==='analysis') loadPatientSelector();
+}
+
+// ════════════════════════════════════════════════════════
+// DATA LAYER (online/offline transparent)
+// ════════════════════════════════════════════════════════
+async function getPatients(search='') {
+  if (ONLINE) return api('GET', `/api/patients/${search?'?search='+encodeURIComponent(search):''}`);
+  let pts = LS.get('mp_patients')||[];
+  if (search) pts=pts.filter(p=>p.full_name.toLowerCase().includes(search.toLowerCase()));
+  return pts;
+}
+async function createPatient(data) {
+  if (ONLINE) return api('POST','/api/patients/',data);
+  const p={id:'p'+Date.now(),...data,doctor_id:currentUser.id,created_at:today(),total_analyses:0,last_analysis_date:null,top_disease:null,top_risk:null,top_probability:null,doctor_name:currentUser.full_name};
+  const pts=LS.get('mp_patients')||[]; pts.push(p); LS.set('mp_patients',pts); return p;
+}
+async function getPatient(id) {
+  if (ONLINE) return api('GET',`/api/patients/${id}`);
+  return (LS.get('mp_patients')||[]).find(p=>p.id===id);
+}
+async function getPatientAnalyses(pid) {
+  if (ONLINE) return api('GET',`/api/analyses/patient/${pid}`);
+  return (LS.get('mp_analyses')||[]).filter(a=>a.patient_id===pid).sort((a,b)=>b.analysis_date.localeCompare(a.analysis_date));
+}
+async function createAnalysis(data) {
+  if (ONLINE) return api('POST','/api/analyses/',data);
+  // offline: run local OOP prediction engine
+  const algos=LS.get('mp_algos')||[];
+  const patient=(LS.get('mp_patients')||[]).find(p=>p.id===data.patient_id)||{age:data.age||0,gender:'male'};
+  const patData={ glucose:data.glucose,cholesterol:data.cholesterol,systolicBP:data.systolic_bp,diastolicBP:data.diastolic_bp,heart_rate:data.heart_rate,temperature:data.temperature,bmi:data.bmi,age:patient.age,gender:patient.gender,anamnesis:data.anamnesis||'' };
+  const predictions=runPrediction(algos, patData);
+  const recommendation=buildReco(predictions);
+  const a={id:'a'+Date.now(),patient_id:data.patient_id,doctor_id:currentUser.id,analysis_date:today(),anamnesis:data.anamnesis,glucose:data.glucose,cholesterol:data.cholesterol,systolic_bp:data.systolic_bp,diastolic_bp:data.diastolic_bp,heart_rate:data.heart_rate,temperature:data.temperature,bmi:data.bmi,predictions,recommendation};
+  const arr=LS.get('mp_analyses')||[]; arr.push(a); LS.set('mp_analyses',arr);
+  // update patient summary
+  const pts=LS.get('mp_patients')||[];
+  const pi=pts.findIndex(p=>p.id===data.patient_id);
+  if(pi>=0&&predictions.length){pts[pi].last_analysis_date=today();pts[pi].total_analyses=(pts[pi].total_analyses||0)+1;pts[pi].top_disease=predictions[0].disease;pts[pi].top_risk=predictions[0].risk;pts[pi].top_probability=predictions[0].probability;LS.set('mp_patients',pts);}
+  return a;
+}
+async function getAlgorithms() {
+  if (ONLINE) return api('GET','/api/algorithms/');
+  return LS.get('mp_algos')||[];
+}
+async function createAlgorithm(data) {
+  if (ONLINE) return api('POST','/api/algorithms/',data);
+  const a={id:'al'+Date.now(),...data,is_system:false,is_active:true,creator_name:currentUser.full_name};
+  const arr=LS.get('mp_algos')||[]; arr.push(a); LS.set('mp_algos',arr); return a;
+}
+async function updateAlgorithm(id, data) {
+  if (ONLINE) return api('PUT',`/api/algorithms/${id}`,data);
+  const arr=LS.get('mp_algos')||[]; const i=arr.findIndex(a=>a.id===id); if(i>=0){arr[i]={...arr[i],...data};LS.set('mp_algos',arr);} return arr[i];
+}
+async function toggleAlgorithm(id) {
+  if (ONLINE) return api('POST',`/api/algorithms/${id}/toggle`);
+  const arr=LS.get('mp_algos')||[]; const i=arr.findIndex(a=>a.id===id); if(i>=0){arr[i].is_active=!arr[i].is_active;LS.set('mp_algos',arr);} return arr[i];
+}
+async function deleteAlgorithm(id) {
+  if (ONLINE) return api('DELETE',`/api/algorithms/${id}`);
+  const arr=(LS.get('mp_algos')||[]).filter(a=>a.id!==id); LS.set('mp_algos',arr);
+}
+async function getStats() {
+  if (ONLINE) return api('GET','/api/stats/');
+  const patients=LS.get('mp_patients')||[]; const analyses=LS.get('mp_analyses')||[]; const algos=(LS.get('mp_algos')||[]).filter(a=>a.is_active);
+  let high=0; const dc={};
+  analyses.forEach(a=>{if(a.predictions&&a.predictions[0]&&a.predictions[0].risk==='high'){high++;dc[a.predictions[0].disease]=(dc[a.predictions[0].disease]||0)+1;}});
+  const top=Object.entries(dc).map(([disease,count])=>({disease,count})).sort((a,b)=>b.count-a.count).slice(0,5);
+  return {total_patients:patients.length,total_analyses:analyses.length,total_algorithms:algos.length,high_risk_count:high,top_diseases:top};
+}
+async function getUsers() {
+  if (ONLINE) return api('GET','/api/users/');
+  return LS.get('mp_users')||[];
+}
+async function createUser(data) {
+  if (ONLINE) return api('POST','/api/users/',data);
+  const u={id:'u'+Date.now(),...data,is_active:true}; const arr=LS.get('mp_users')||[]; arr.push(u); LS.set('mp_users',arr); return u;
+}
+
+// ════════════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════════════
+async function loadDashboard() {
+  try {
+    const s=await getStats();
+    document.getElementById('st-patients').textContent=s.total_patients;
+    document.getElementById('st-analyses').textContent=s.total_analyses;
+    document.getElementById('st-algos').textContent=s.total_algorithms;
+    document.getElementById('st-high').textContent=s.high_risk_count;
+    const td=document.getElementById('top-diseases');
+    const maxC=Math.max(...s.top_diseases.map(x=>x.count),1);
+    td.innerHTML=s.top_diseases.length?s.top_diseases.map(x=>`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:500">${x.disease}</span><span style="color:var(--danger);font-weight:600">${x.count}</span></div><div class="risk-bar"><div class="risk-fill high" style="width:${(x.count/maxC)*100}%"></div></div></div>`).join(''):'<div class="empty" style="padding:20px"><div class="empty-text">Немає даних</div></div>';
+    const pts=await getPatients();
+    const withA=pts.filter(p=>p.last_analysis_date).sort((a,b)=>(b.last_analysis_date||'').localeCompare(a.last_analysis_date||'')).slice(0,6);
+    document.getElementById('recent-list').innerHTML=withA.length?withA.map(p=>`<div class="analysis-list-item" onclick="openPatient('${p.id}')"><div><div style="font-weight:500;font-size:13px">${p.full_name}</div><div style="font-size:11px;color:var(--text3)">${fmtDate(p.last_analysis_date)}</div></div>${p.top_risk?`<div style="text-align:right"><span class="badge badge-${p.top_risk}">${p.top_probability}%</span><div style="font-size:11px;color:var(--text3);margin-top:2px">${p.top_disease||''}</div></div>`:''}</div>`).join(''):'<div class="empty" style="padding:30px"><div class="empty-text">Аналізів ще немає</div></div>';
+  } catch(e){ showToast('Помилка завантаження: '+e.message,'error'); }
+}
+
+// ════════════════════════════════════════════════════════
+// PATIENTS
+// ════════════════════════════════════════════════════════
+async function loadPatients() {
+  document.getElementById('patients-table').innerHTML='<div class="loader"><div class="spinner"></div></div>';
+  try { allPatients=await getPatients(); renderPatients(allPatients); } catch(e){ showToast(e.message,'error'); }
+}
+function renderPatients(patients) {
+  document.getElementById('patients-count').textContent=patients.length;
+  const w=document.getElementById('patients-table');
+  if(!patients.length){w.innerHTML=`<div class="empty"><div class="empty-icon">👥</div><div class="empty-title">Пацієнтів не знайдено</div><button class="btn btn-primary btn-sm" onclick="showPatModal()">+ Додати пацієнта</button></div>`;return;}
+  w.innerHTML=`<table class="data-table"><thead><tr><th>Пацієнт</th><th>Вік/Стать</th><th>Аналізів</th><th>Останній</th><th>Топ прогноз</th><th>Ризик</th></tr></thead><tbody>${patients.map(p=>`<tr onclick="openPatient('${p.id}')"><td><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#06b6d4);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px;flex-shrink:0">${p.full_name.charAt(0)}</div><div><div style="font-weight:500">${p.full_name}</div><div style="font-size:11px;color:var(--text3)">${p.doctor_name||''}</div></div></div></td><td>${p.age} р. · ${p.gender==='male'?'♂':'♀'}</td><td>${p.total_analyses||0}</td><td>${p.last_analysis_date?fmtDate(p.last_analysis_date):'—'}</td><td>${p.top_disease||'—'}</td><td>${p.top_risk?`<span class="badge badge-${p.top_risk}"><span class="dot dot-${p.top_risk}"></span> ${riskLabel(p.top_risk)} · ${p.top_probability}%</span>`:'—'}</td></tr>`).join('')}</tbody></table><div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;color:var(--text3)">Всього: ${patients.length} пацієнтів</span><button class="btn btn-outline btn-sm" onclick="showPatModal()">+ Додати пацієнта</button></div>`;
+}
+function searchPatients(q){const f=q?allPatients.filter(p=>p.full_name.toLowerCase().includes(q.toLowerCase())):allPatients;renderPatients(f);}
+async function openPatient(id){currentPatientId=id;nav('patient-detail');await loadPatientDetail(id);}
+async function loadPatientDetail(id){
+  document.getElementById('patient-header-block').innerHTML='<div class="loader"><div class="spinner"></div></div>';
+  document.getElementById('patient-analyses-list').innerHTML='<div class="loader"><div class="spinner"></div></div>';
+  document.getElementById('sel-analysis-panel').style.display='none';
+  try{
+    const p=await getPatient(id);
+    document.getElementById('bc-name').textContent=p.full_name;
+    document.getElementById('patient-header-block').innerHTML=`<div class="patient-header"><div class="patient-avatar">${p.full_name.charAt(0)}</div><div style="flex:1"><div class="patient-name">${p.full_name}</div><div class="patient-meta"><span>📅 ${p.age} р.</span><span>${p.gender==='male'?'♂':'♀'}</span>${p.phone?`<span>📞 ${p.phone}</span>`:''}<span>🔬 ${p.total_analyses||0} аналізів</span></div></div><button class="btn btn-primary btn-sm" onclick="newAnalysisForPatient()">+ Новий аналіз</button></div>`;
+    const analyses=await getPatientAnalyses(id);
+    const list=document.getElementById('patient-analyses-list');
+    if(!analyses.length){list.innerHTML='<div class="empty" style="padding:40px"><div class="empty-icon">🔬</div><div class="empty-text">Аналізів немає</div></div>';return;}
+    list.innerHTML=analyses.map(a=>{const top=a.predictions?.[0];return`<div class="analysis-list-item" onclick="showAnalysis(${JSON.stringify(a).replace(/"/g,'&quot;')})"><div><div style="font-weight:500;font-size:13.5px">${top?top.disease:'Аналіз'}</div><div style="font-size:12px;color:var(--text3)">${fmtDate(a.analysis_date)}</div></div>${top?`<span class="badge badge-${top.risk}">${top.probability}%</span>`:''}</div>`;}).join('');
+  }catch(e){showToast(e.message,'error');}
+}
+function showAnalysis(a){
+  const panel=document.getElementById('sel-analysis-panel');panel.style.display='block';
+  document.getElementById('sel-analysis-title').textContent='📊 Аналіз від '+fmtDate(a.analysis_date);
+  document.getElementById('sel-analysis-body').innerHTML=`<div style="padding:13px 18px;background:var(--surface2);border-bottom:1px solid var(--border)"><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Показники</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:12.5px">${a.glucose!=null?`<div><span style="color:var(--text3)">Глюкоза:</span> <b>${a.glucose}</b></div>`:''} ${a.cholesterol!=null?`<div><span style="color:var(--text3)">Холестерин:</span> <b>${a.cholesterol}</b></div>`:''} ${a.systolic_bp!=null?`<div><span style="color:var(--text3)">АТ сист.:</span> <b>${a.systolic_bp}</b></div>`:''} ${a.diastolic_bp!=null?`<div><span style="color:var(--text3)">АТ діаст.:</span> <b>${a.diastolic_bp}</b></div>`:''} ${a.heart_rate!=null?`<div><span style="color:var(--text3)">ЧСС:</span> <b>${a.heart_rate}</b></div>`:''} ${a.bmi!=null?`<div><span style="color:var(--text3)">ІМТ:</span> <b>${a.bmi}</b></div>`:''}</div>${a.anamnesis?`<div style="margin-top:9px;font-size:12.5px;color:var(--text2)">${a.anamnesis}</div>`:''}</div>${renderPredictions(a.predictions,a.recommendation)}`;
+}
+
+// ════════════════════════════════════════════════════════
+// ANALYSIS FORM
+// ════════════════════════════════════════════════════════
+async function loadPatientSelector(){
+  try{const pts=await getPatients();const sel=document.getElementById('f-patient-sel');sel.innerHTML='<option value="">— Новий пацієнт —</option>'+pts.map(p=>`<option value="${p.id}">${p.full_name}</option>`).join('');if(currentPatientId){sel.value=currentPatientId;onPatSel(currentPatientId);currentPatientId=null;}}catch{}
+}
+function onPatSel(v){document.getElementById('new-pat-block').style.display=v?'none':'block';}
+function newAnalysisForPatient(){nav('analysis');setTimeout(()=>{const s=document.getElementById('f-patient-sel');if(currentPatientId){s.value=currentPatientId;onPatSel(currentPatientId);}},120);}
+async function runAnalysis(){
+  const sel=document.getElementById('f-patient-sel').value;
+  const glucose=parseFloat(document.getElementById('f-glucose').value)||null;
+  const cholesterol=parseFloat(document.getElementById('f-chol').value)||null;
+  const systolicBP=parseInt(document.getElementById('f-sys').value)||null;
+  const diastolicBP=parseInt(document.getElementById('f-dia').value)||null;
+  const heartRate=parseInt(document.getElementById('f-hr').value)||null;
+  const temperature=parseFloat(document.getElementById('f-temp').value)||null;
+  const bmi=parseFloat(document.getElementById('f-bmi').value)||null;
+  const anamnesis=document.getElementById('f-anamnesis').value;
+  if(!glucose&&!cholesterol&&!systolicBP){showToast('Введіть хоча б один показник','warning');return;}
+  let patientId=sel;
+  if(!sel){
+    const nm=document.getElementById('f-name').value.trim(); const age=parseInt(document.getElementById('f-age').value); const gender=document.getElementById('f-gender').value; const phone=document.getElementById('f-phone').value.trim()||null;
+    if(!nm||!age){showToast('Введіть ПІБ та вік пацієнта','warning');return;}
+    try{const p=await createPatient({full_name:nm,age,gender,phone});patientId=p.id;}catch(e){showToast(e.message,'error');return;}
+  }
+  const btn=document.getElementById('run-btn'); btn.disabled=true; btn.textContent='⏳ Аналізую...';
+  try{
+    const a=await createAnalysis({patient_id:patientId,anamnesis,glucose,cholesterol,systolic_bp:systolicBP,diastolic_bp:diastolicBP,heart_rate:heartRate,temperature,bmi});
+    document.getElementById('res-status').style.display='inline-flex';
+    document.getElementById('results-area').innerHTML=renderPredictions(a.predictions,a.recommendation);
+    showToast('Аналіз завершено і збережено!','success');
+  }catch(e){showToast(e.message,'error');}finally{btn.disabled=false;btn.textContent='🚀 Запустити прогноз';}
+}
+function renderPredictions(predictions,recommendation){
+  if(!predictions||!predictions.length) return '<div class="results-empty"><div class="results-empty-icon">✅</div><div style="font-size:13px;color:var(--text3)">Суттєвих ризиків не виявлено</div></div>';
+  return `${predictions.map(p=>`<div class="prediction-item"><div class="pred-name"><span>${p.disease}</span><span class="pred-prob prob-${p.risk}">${p.probability}%</span></div><div class="risk-bar"><div class="risk-fill ${p.risk}" style="width:${p.probability}%"></div></div><div style="margin-top:5px;display:flex;align-items:center;gap:8px"><span class="badge badge-${p.risk}" style="font-size:11px"><span class="dot dot-${p.risk}"></span> ${riskLabel(p.risk)} ризик</span>${p.score!=null?`<span style="font-size:11px;color:var(--text3)">Бали: ${p.score}/${p.max_score}</span>`:''}</div>${p.factors?.length?`<div class="pred-factors">${p.factors.map(f=>`<span class="factor-chip">${f}</span>`).join('')}</div>`:''}</div>`).join('')}${recommendation?`<div class="reco-box"><strong>💊 Рекомендації</strong>${recommendation}</div>`:''}`;
+}
+
+// ════════════════════════════════════════════════════════
+// ALGORITHMS
+// ════════════════════════════════════════════════════════
+async function loadAlgorithms(){
+  document.getElementById('algo-grid').innerHTML='<div class="loader"><div class="spinner"></div></div>';
+  const canCreate=currentUser?.role==='doctor'||currentUser?.role==='admin';
+  document.getElementById('btn-create-algo').style.display=canCreate?'flex':'none';
+  try{const algos=await getAlgorithms();const c=document.getElementById('algo-grid');if(!algos.length){c.innerHTML='<div class="empty"><div class="empty-icon">🧠</div><div class="empty-title">Алгоритмів немає</div></div>';return;}c.innerHTML=`<div class="algo-grid">${algos.map(a=>renderAlgoCard(a)).join('')}</div>`;}catch(e){showToast(e.message,'error');}
+}
+function renderAlgoCard(a){
+  const canEdit=(currentUser?.role==='admin')||(currentUser?.role==='doctor'&&!a.is_system);
+  const opL={gt:'>',gte:'≥',lt:'<',lte:'≤',eq:'=',between:'між',contains:'містить',not_contains:'не містить'};
+  const fL={glucose:'Глюкоза',cholesterol:'Холестерин',systolicBP:'АТ сист.',diastolicBP:'АТ діаст.',heartRate:'ЧСС',temperature:'Темп.',bmi:'ІМТ',age:'Вік',gender:'Стать',anamnesis:'Анамнез'};
+  const preview=a.rules?.slice(0,3).map(r=>{const v=r.operator==='contains'?`"${r.value_text}"`:r.operator==='between'?`${r.value}–${r.value2}`:r.value;return`<div>▸ ${fL[r.field]||r.field} ${opL[r.operator]||r.operator} ${v} → <b>+${r.score} балів</b></div>`;}).join('');
+  return `<div class="algo-card"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px"><div><div class="algo-card-name">${a.name}</div><div class="algo-card-disease">🎯 ${a.disease}</div></div><div class="algo-card-actions">${canEdit?`<button class="btn btn-outline btn-xs" onclick="editAlgo('${a.id}')">✏️</button>`:''} ${canEdit?`<button class="btn btn-xs ${a.is_active?'btn-warning':'btn-success'}" onclick="toggleAlgo('${a.id}')">${a.is_active?'⏸':'▶'}</button>`:''} ${canEdit&&!a.is_system?`<button class="btn btn-danger btn-xs" onclick="delAlgo('${a.id}')">🗑</button>`:''}</div></div><div class="algo-card-meta">${a.is_system?'<span class="badge badge-system">🔒 Системний</span>':'<span class="badge badge-blue">👤 Кастомний</span>'} <span class="badge ${a.is_active?'badge-green':'badge-gray'}"><span class="dot ${a.is_active?'dot-active':'dot-inactive'}"></span>${a.is_active?'Активний':'Неактивний'}</span> <span class="badge badge-gray">v${a.version}</span> <span class="badge badge-gray">${a.rules?.length||0} правил</span></div>${a.description?`<div style="font-size:12.5px;color:var(--text2);margin-bottom:9px;line-height:1.6">${a.description}</div>`:''}<div class="algo-rules-preview"><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Правила:</div>${preview||'—'}${(a.rules?.length||0)>3?`<div style="color:var(--text3);font-size:11px;margin-top:3px">... ще ${a.rules.length-3} правил</div>`:''}</div><div style="margin-top:9px;font-size:11.5px;color:var(--text3)">🟢≥${a.threshold_low} 🟡≥${a.threshold_medium} 🔴≥${a.threshold_high} · макс ${a.max_score} балів</div>${a.creator_name?`<div style="margin-top:4px;font-size:11px;color:var(--text3)">👨‍⚕️ ${a.creator_name}</div>`:''}</div>`;
+}
+async function toggleAlgo(id){try{await toggleAlgorithm(id);loadAlgorithms();showToast('Статус змінено','success');}catch(e){showToast(e.message,'error');}}
+async function delAlgo(id){if(!confirm('Видалити алгоритм?'))return;try{await deleteAlgorithm(id);loadAlgorithms();showToast('Видалено','success');}catch(e){showToast(e.message,'error');}}
+async function editAlgo(id){try{const algos=await getAlgorithms();const a=algos.find(x=>x.id===id);if(a)showAlgoModal(a);}catch(e){showToast(e.message,'error');}}
+
+// ── ALGO MODAL ──
+const FIELDS=[{v:'glucose',l:'Глюкоза (ммоль/л)'},{v:'cholesterol',l:'Холестерин (ммоль/л)'},{v:'systolicBP',l:'АТ Систолічний'},{v:'diastolicBP',l:'АТ Діастолічний'},{v:'heartRate',l:'ЧСС (уд/хв)'},{v:'temperature',l:'Температура (°C)'},{v:'bmi',l:'ІМТ (кг/м²)'},{v:'age',l:'Вік (роки)'},{v:'gender',l:'Стать'},{v:'anamnesis',l:'Анамнез (текст)'}];
+const OPS_LIST=[{v:'gt',l:'> більше'},{v:'gte',l:'≥ не менше'},{v:'lt',l:'< менше'},{v:'lte',l:'≤ не більше'},{v:'eq',l:'= рівно'},{v:'between',l:'між (від–до)'},{v:'contains',l:'містить слово(а)'},{v:'not_contains',l:'не містить'}];
+
+function showAlgoModal(data=null){
+  editingAlgoId=data?.id||null; ruleCount=0;
+  document.getElementById('am-title').textContent=data?'✏️ Редагувати алгоритм':'🧠 Новий алгоритм';
+  document.getElementById('am-name').value=data?.name||'';
+  document.getElementById('am-disease').value=data?.disease||'';
+  document.getElementById('am-desc').value=data?.description||'';
+  document.getElementById('am-ver').value=data?.version||'1.0';
+  document.getElementById('am-max').value=data?.max_score||100;
+  document.getElementById('am-tlow').value=data?.threshold_low??20;
+  document.getElementById('am-tmed').value=data?.threshold_medium??40;
+  document.getElementById('am-thigh').value=data?.threshold_high??65;
+  document.getElementById('rules-container').innerHTML='';
+  if(data?.rules?.length){data.rules.forEach(r=>addRule(r));}else{addRule();addRule();}
+  document.getElementById('algo-modal').classList.add('show');
+}
+function addRule(data=null){
+  const idx=ruleCount++;
+  const c=document.getElementById('rules-container');
+  const div=document.createElement('div');
+  div.className='rule-row'; div.id=`rule-${idx}`;
+  const isText=data?.operator==='contains'||data?.operator==='not_contains'||data?.field==='anamnesis';
+  const isBetween=data?.operator==='between';
+  let valInput=isText?`<input class="rule-input" type="text" id="rf-val-${idx}" placeholder="слово1,слово2" value="${data?.value_text||''}">`
+    :isBetween?`<div style="display:flex;gap:4px"><input class="rule-input" type="number" id="rf-val-${idx}" placeholder="від" value="${data?.value||''}" style="width:50%"><input class="rule-input" type="number" id="rf-val2-${idx}" placeholder="до" value="${data?.value2||''}" style="width:50%"></div>`
+    :`<input class="rule-input" type="number" id="rf-val-${idx}" step="0.1" placeholder="значення" value="${data?.value||''}">`;
+  div.innerHTML=`<select class="rule-input" id="rf-field-${idx}" onchange="onRuleFieldChange(${idx})">${FIELDS.map(f=>`<option value="${f.v}" ${data?.field===f.v?'selected':''}>${f.l}</option>`).join('')}</select><select class="rule-input" id="rf-op-${idx}" onchange="onRuleOpChange(${idx})">${OPS_LIST.map(o=>`<option value="${o.v}" ${data?.operator===o.v?'selected':''}>${o.l}</option>`).join('')}</select>${valInput}<input class="rule-input" type="number" id="rf-score-${idx}" placeholder="бали" min="1" max="200" value="${data?.score||10}" style="text-align:center"><input class="rule-input" type="text" id="rf-desc-${idx}" placeholder="Опис правила" value="${data?.description||''}"><button class="btn btn-danger btn-xs" onclick="document.getElementById('rule-${idx}').remove()">✕</button>`;
+  c.appendChild(div);
+}
+function onRuleFieldChange(idx){const f=document.getElementById(`rf-field-${idx}`)?.value;if(f==='anamnesis'){const op=document.getElementById(`rf-op-${idx}`);if(op)op.value='contains';}}
+function onRuleOpChange(idx){
+  const op=document.getElementById(`rf-op-${idx}`)?.value;
+  const row=document.getElementById(`rule-${idx}`);if(!row)return;
+  const valEl=row.querySelector(`#rf-val-${idx}`);if(!valEl)return;
+  const isText=op==='contains'||op==='not_contains';
+  const isBetween=op==='between';
+  if(isText){valEl.type='text';valEl.placeholder='слово1,слово2';}
+  else{valEl.type='number';valEl.placeholder='значення';}
+  const existing=row.querySelector(`#rf-val2-${idx}`);
+  if(isBetween&&!existing){const v2=document.createElement('input');v2.className='rule-input';v2.type='number';v2.id=`rf-val2-${idx}`;v2.placeholder='до';v2.style.marginTop='3px';valEl.parentNode.appendChild(v2);}
+  else if(!isBetween&&existing){existing.remove();}
+}
+function collectRules(){
+  const rules=[];
+  document.querySelectorAll('[id^="rule-"]').forEach((row,i)=>{
+    const idx=row.id.split('-')[1];
+    const field=document.getElementById(`rf-field-${idx}`)?.value;
+    const op=document.getElementById(`rf-op-${idx}`)?.value;
+    const valEl=document.getElementById(`rf-val-${idx}`);
+    const val2El=document.getElementById(`rf-val2-${idx}`);
+    const score=parseInt(document.getElementById(`rf-score-${idx}`)?.value)||10;
+    const desc=document.getElementById(`rf-desc-${idx}`)?.value||null;
+    if(!field||!op||!valEl)return;
+    const isText=op==='contains'||op==='not_contains'||field==='anamnesis';
+    rules.push({field,operator:op,score,description:desc,sort_order:i,value:isText?null:parseFloat(valEl.value)||null,value_text:isText?valEl.value:null,value2:val2El?parseFloat(val2El.value)||null:null});
+  });
+  return rules;
+}
+async function saveAlgorithm(){
+  const name=document.getElementById('am-name').value.trim(); const disease=document.getElementById('am-disease').value.trim();
+  if(!name||!disease){showToast('Введіть назву та захворювання','warning');return;}
+  const payload={name,disease,description:document.getElementById('am-desc').value.trim()||null,version:document.getElementById('am-ver').value||'1.0',threshold_low:parseInt(document.getElementById('am-tlow').value)||20,threshold_medium:parseInt(document.getElementById('am-tmed').value)||40,threshold_high:parseInt(document.getElementById('am-thigh').value)||65,max_score:parseInt(document.getElementById('am-max').value)||100,rules:collectRules()};
+  const btn=document.getElementById('am-save-btn'); btn.disabled=true; btn.textContent='⏳...';
+  try{
+    if(editingAlgoId){await updateAlgorithm(editingAlgoId,payload);showToast('Алгоритм оновлено!','success');}
+    else{await createAlgorithm(payload);showToast('Алгоритм створено!','success');}
+    closeModal('algo-modal'); loadAlgorithms();
+  }catch(e){showToast(e.message,'error');}finally{btn.disabled=false;btn.textContent='💾 Зберегти алгоритм';}
+}
+
+// ════════════════════════════════════════════════════════
+// PATIENTS MODAL
+// ════════════════════════════════════════════════════════
+function showPatModal(){['mp-name','mp-phone'].forEach(id=>document.getElementById(id).value='');document.getElementById('mp-age').value='';document.getElementById('pat-modal').classList.add('show');}
+async function savePatient(){
+  const full_name=document.getElementById('mp-name').value.trim(); const age=parseInt(document.getElementById('mp-age').value); const gender=document.getElementById('mp-gender').value; const phone=document.getElementById('mp-phone').value.trim()||null;
+  if(!full_name||!age){showToast('Введіть ПІБ та вік','warning');return;}
+  try{await createPatient({full_name,age,gender,phone});closeModal('pat-modal');showToast('Пацієнта додано!','success');loadPatients();}catch(e){showToast(e.message,'error');}
+}
+
+// ════════════════════════════════════════════════════════
+// USERS
+// ════════════════════════════════════════════════════════
+async function loadUsers(){try{const users=await getUsers();document.getElementById('users-table').innerHTML=`<table class="data-table"><thead><tr><th>Ім'я</th><th>Логін</th><th>Роль</th><th>Спеціальність</th><th>Статус</th></tr></thead><tbody>${users.map(u=>`<tr><td><div style="display:flex;align-items:center;gap:9px"><div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#06b6d4);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px">${u.full_name.charAt(0)}</div>${u.full_name}</div></td><td><code style="font-family:'DM Mono',monospace;font-size:12px;background:var(--bg);padding:2px 7px;border-radius:4px">${u.login}</code></td><td><span class="badge badge-blue">${roleLabel(u.role)}</span></td><td>${u.specialty||'—'}</td><td><span class="badge ${u.is_active?'badge-green':'badge-gray'}">${u.is_active?'Активний':'Деактивований'}</span></td></tr>`).join('')}</tbody></table>`;}catch(e){showToast(e.message,'error');}}
+function showUserModal(){document.getElementById('user-modal').classList.add('show');}
+async function saveUser(){
+  const login=document.getElementById('mu-login').value.trim(); const password=document.getElementById('mu-pass').value; const full_name=document.getElementById('mu-name').value.trim(); const role=document.getElementById('mu-role').value; const specialty=document.getElementById('mu-spec').value.trim()||null;
+  if(!login||!password||!full_name){showToast('Заповніть всі поля','warning');return;}
+  try{await createUser({login,password,full_name,role,specialty});closeModal('user-modal');showToast('Користувача додано!','success');loadUsers();}catch(e){showToast(e.message,'error');}
+}
+
+// ════════════════════════════════════════════════════════
+// REPORTS
+// ════════════════════════════════════════════════════════
+async function loadReports(){
+  try{const s=await getStats();document.getElementById('reports-body').innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:20px"><div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center"><div style="font-size:30px;font-weight:700;color:var(--danger)">${s.high_risk_count}</div><div style="font-size:12px;color:var(--text2);margin-top:3px">Випадки високого ризику</div></div><div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center"><div style="font-size:30px;font-weight:700;color:var(--primary)">${s.total_patients}</div><div style="font-size:12px;color:var(--text2);margin-top:3px">Пацієнтів у системі</div></div><div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center"><div style="font-size:30px;font-weight:700;color:var(--success)">${s.total_analyses}</div><div style="font-size:12px;color:var(--text2);margin-top:3px">Аналізів проведено</div></div></div>${s.top_diseases.map((d,i)=>`<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)"><span style="font-size:18px;font-weight:700;color:var(--text3);width:22px">${i+1}</span><span style="flex:1;font-weight:500">${d.disease}</span><span style="font-weight:700;color:var(--danger)">${d.count} випадків</span></div>`).join('')||'<div class="empty" style="padding:20px"><div class="empty-text">Немає даних</div></div>'}`;}catch(e){showToast(e.message,'error');}
+}
+
+// ════════════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════════════
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='show '+(type||'');setTimeout(()=>t.className='',3200);}
+function fmtDate(d){if(!d)return'—';const p=String(d).split('-');return p.length===3?`${p[2]}.${p[1]}.${p[0]}`:d;}
+function today(){return new Date().toISOString().split('T')[0];}
+function roleLabel(r){return{doctor:'Лікар',admin:'Адміністратор',analyst:'Аналітик'}[r]||r;}
+function riskLabel(r){return{high:'Високий',medium:'Середній',low:'Низький'}[r]||r;}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('login-screen').style.display!=='none')login();});
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+(async()=>{
+  loadLS();
+  await detectMode();
+  // Re-check every 30 seconds
+  setInterval(async()=>{const was=ONLINE;await detectMode();if(was!==ONLINE)showToast(ONLINE?'🟢 Підключено до сервера':'🟡 Перейшли в офлайн-режим',ONLINE?'success':'warning');},30000);
+})();
+</script>
+</body>
+</html>
